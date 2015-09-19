@@ -263,7 +263,7 @@ class Socket
 		@channels.forEach (channel) -> channel.trigger(CHANNEL_EVENTS.error)
 
 	connectionState: ->
-		switch @conn && @conn.readState
+		switch @conn && @conn.readyState
 			when SOCKET_STATES.connecting
 				"connecting"
 			when SOCKET_STATES.open
