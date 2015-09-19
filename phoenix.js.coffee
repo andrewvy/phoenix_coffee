@@ -1,4 +1,3 @@
-VSN = "1.0.0"
 SOCKET_STATES =
 	connecting: 0
 	open: 1
@@ -177,7 +176,7 @@ class Channel
 	replyEventName: (ref) -> "chan_reply_#{ref}"
 
 class Socket
-	constructor: (endPoint, opts = {}) ->
+	constructor: (endPoint="", opts = {}) ->
 		@stateChangeCallbacks =
 			open: []
 			close: []
@@ -196,20 +195,19 @@ class Socket
 			() => @connect(@params),
 			@reconnectAfterMs
 		)
-		@endPoint = "#{endPoint}/#{TRANSPORTS.websocket}"
 
-	protocol: -> location.protocol.match(/^https/) ? "wss" : "ws"
+		endPoint = if endPoint.charAt(0) is not "/" then endPoint else endPoint + "/"
+		@endPoint = "#{endPoint}#{TRANSPORTS.websocket}"
+
+	protocol: -> if location.protocol.match(/^https/) then "wss" else "ws"
 
 	endPointURL: ->
-		uri = Ajax.appendParams(
-			Ajax.appendParams(@endpoint, @params),
-			{ vsn: VSN }
-		)
+		uri = Ajax.appendParams(@endPoint, @params)
 
 		if uri.charAt(0) is not "/" then return uri
 		if uri.charAt(1) is "/" then return "#{@protocol()}:#{uri}"
 
-		"#{@protocol()}://#{location.host}#{uri}"
+		"#{@protocol()}://#{uri}"
 
 	disconnect: (callback, code, reason) ->
 		if @conn
@@ -285,7 +283,7 @@ class Socket
 		channel
 
 	push: (data) ->
-		{ topic, event, paylaod, ref } = data
+		{ topic, event, payload, ref } = data
 		callback = () => @conn.send(JSON.stringify(data))
 		@log("push", "#{topic} #{event} (#{ref})", payload)
 		if @isConnected()
@@ -428,7 +426,7 @@ class Ajax
 
 	@serialize: (obj, parentKey) ->
 		queryStr = []
-		for key in obj
+		for key of obj
 			if !obj.hasOwnProperty(key) then continue
 			paramKey = if parentKey then "#{parentKey}[#{key}]" else key
 			paramVal = obj[key]
@@ -442,7 +440,8 @@ class Ajax
 	@appendParams: (url, params) ->
 		if Object.keys(params).length is 0 then return url
 
-		prefix = url.match(/\?/) ? "&" : "?"
+		prefix = if url.match(/\?/) then "&" else "?"
+
 		"#{url}#{prefix}#{@serialize(params)}"
 
 Ajax.states = {complete: 4}
