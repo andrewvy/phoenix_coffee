@@ -130,12 +130,17 @@ class Channel
 
 		@sendJoin()
 		@joinPush
+		return @
 
 	onClose: (callback) -> @on CHANNEL_EVENTS.close, callback
 	onError: (callback) -> @on CHANNEL_EVENTS.error, (reason) => callback(reason)
 
-	on: (event, callback) -> @bindings.push { event, callback }
-	off: (event) -> @bindings.filter (bind) => bind.event is not event
+	on: (event, callback) ->
+		@bindings.push { event, callback }
+		return @
+	off: (event) ->
+		@bindings.filter (bind) => bind.event is not event
+		return @
 
 	canPush: -> @socket.isConnected() and @state is CHANNEL_STATES.joined
 
@@ -148,7 +153,7 @@ class Channel
 		else
 			@pushBuffer.push(pushEvent)
 
-		pushEvent
+		return @
 
 	leave: ->
 		@push(CHANNEL_EVENTS.leave).receive "ok", =>
@@ -229,6 +234,7 @@ class Socket
 			@conn.onerror = (error) => @onConnError(error)
 			@conn.onmessage = (event) => @onConnMessage(event)
 			@conn.onclose = (event) => @onConnClose(event)
+		return @
 
 	log: (kind, msg, data) -> @logger(kind, msg, data)
 
