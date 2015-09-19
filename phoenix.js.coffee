@@ -224,7 +224,7 @@ class Socket
 
 	connect: (params={}) ->
 		@params = params
-		@diconnect =>
+		@disconnect =>
 			@conn = new @transport(@endPointURL())
 			@conn.timeout = @longpollerTimeout
 			@conn.onopen = () => @onConnOpen()
